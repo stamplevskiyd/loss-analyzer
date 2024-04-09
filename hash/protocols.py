@@ -1,34 +1,52 @@
-from abc import ABC, abstractmethod
+from scapy.layers.inet import TCP, UDP, ICMP
+from scapy.packet import Packet
+
+from custom_exceptions import NoTransportLayerException
 
 
-class ProtocolConfig(ABC):
+class ProtocolHashBase:
     """Base class for protocol config"""
 
-    @classmethod
-    @abstractmethod
-    def hash_fields(cls) -> list[str]:
-        """List of fields that will be transformed to first level hash"""
-        ...
+    hash_fields: list[str] = []
 
     @classmethod
-    @abstractmethod
-    def name(cls) -> str:
-        """Protocol name"""
-        ...
+    def create_hash(cls, packet: Packet) -> int:
+        fields_combined: list[str] = [
+            str(packet.fields[field]) for field in cls.hash_fields
+        ]
+        return hash("".join(fields_combined))
 
 
-class TCPConfig(ProtocolConfig):
-    name: str = "TCP"
+class TCPHash(ProtocolHashBase):
     hash_fields: list[str] = ["seq", "ack", "dataofs", "reserved", "flags", "urgptr"]
 
+    @classmethod
+    def create_hash(cls, packet: Packet) -> int:
+        fields_combined: list[str] = [
+            str(packet.fields[field]) for field in cls.hash_fields if field != "flags"
+        ]
+        fields_combined.append(str(packet.fields["flags"].value))
+        return hash("".join(fields_combined))
 
-class UDPConfig(ProtocolConfig):
-    name: str = "UDP"
+
+class UDPHash(ProtocolHashBase):
     hash_fields: list[str] = ["len", "chksum"]
 
 
-class ICMPConfig(ProtocolConfig):
-    name: str = "ICMP"
+class ICMPHash(ProtocolHashBase):
     hash_fields: list[str] = ["type", "id", "seq"]
 
-config_dict: dict[str, type[ProtocolConfig]] = {config.name: config for config in ProtocolConfig.__subclasses__()}
+
+def transport_hash(packet: Packet) -> int:
+    """Create first-level hash from transport level of packet"""
+    transport_level: Packet
+    transport_level_type: str
+
+    if packet.haslayer(TCP):
+        return TCPHash.create_hash(packet[TCP])
+    elif packet.haslayer(UDP):
+        return UDPHash.create_hash(packet[UDP])
+    elif packet.haslayer(ICMP):
+        return ICMPHash.create_hash(packet[ICMP])
+    else:
+        raise NoTransportLayerException()

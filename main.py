@@ -9,9 +9,9 @@ from config import (
     RESULTS_FOLDER,
     RECEIVED_FILE,
     SENT_GROUPS_SOLDER,
-    RECEIVED_GROUPS_SOLDER
+    RECEIVED_GROUPS_SOLDER,
 )
-from hash import transport_hash
+from hash.protocols import transport_hash
 from writer import write_packet
 
 logger = logging.getLogger(__name__)
