@@ -8,7 +8,7 @@ from scapy.packet import Packet
 from hash.protocols import config_dict, ProtocolConfig
 
 
-def transport_hash(packet: Packet) -> str:
+def transport_hash(packet: Packet) -> int:
     """Create first-level hash from transport level of packet"""
     current_packet: Packet = packet
     transport_level: Packet | None = None
@@ -23,6 +23,6 @@ def transport_hash(packet: Packet) -> str:
         else:
             current_packet = current_packet.payload
 
-    return ".".join([str(current_packet.fields[field_name]) for field_name in supported_fields])
+    return hash("".join([str(current_packet.fields[field_name]) for field_name in supported_fields]))
 
 

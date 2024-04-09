@@ -1,5 +1,4 @@
 from abc import ABC, abstractmethod
-from scapy.layers.inet import TCP, UDP, ICMP
 
 
 class ProtocolConfig(ABC):
