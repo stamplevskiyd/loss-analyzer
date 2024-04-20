@@ -1,5 +1,6 @@
 import logging
 import os
+import multiprocessing
 from pathlib import Path
 from datetime import datetime
 
@@ -34,8 +35,8 @@ class PacketProcessor:
         sent_groups_folder: str = "sent_groups",
         received_groups_folder: str = "received_groups",
     ):
-        self._sent_groups: set[str] = set()
-        self._received_groups: set[str] = set()
+        self._sent_groups: list[str] = []
+        self._received_groups: list[str] = []
 
         self._sent_groups_folder: str = sent_groups_folder
         self._received_groups_folder: str = received_groups_folder
@@ -73,14 +74,14 @@ class PacketProcessor:
         os.remove(self._received_groups_folder)
         os.remove(self._sent_groups_folder)
 
-    def _load_packets(self, filename: str, file_type: str) -> tuple[set[str], int]:
+    def _load_packets(self, filename: str, file_type: str) -> tuple[list[str], int]:
         """Load packets of some group"""
         packets: list[Packet] = rdpcap(filename).res
-        groups: set[str] = set()
+        groups: list[str] = []
 
         for packet in packets:
             hash_value: str = self._get_hash(packet)
-            groups.add(hash_value)
+            groups.append(hash_value)
             filename: str = get_filename_from_hash(hash_value=hash_value, packet_type=file_type)
             wrpcap(filename=filename, pkt=packet, append=True)
 
@@ -117,16 +118,20 @@ class PacketProcessor:
 
         return "-".join(map(str, field_values))
 
-    @staticmethod
-    def _compare_groups(sent_packets: list[Packet], received_packets: list[Packet], sort_func=None) -> None:
+    def _compare_group(self, group_id: str) -> tuple[list[Packet], list[Packet]]:
         """
         Compare packet groups and find, which packets are missing
         Saves sent but not received packets in sent_packets
         Saves received but not sent packets in received_packets
         """
-        if sort_func:
-            sent_packets = sort_func(sent_packets)
-            received_packets = sort_func(received_packets)
+        print("Processing group", group_id)
+        sent_filename: str = get_filename_from_hash(group_id, "sent")
+        sent_packets: list[Packet] = rdpcap(sent_filename).res
+        if group_id not in self._received_groups:
+            return sent_packets, []
+
+        received_filename: str = get_filename_from_hash(group_id, "received")
+        received_packets: list[Packet] = rdpcap(received_filename).res
 
         sent_idx: int = 0
         while sent_idx < len(sent_packets):
@@ -138,27 +143,47 @@ class PacketProcessor:
             else:
                 sent_idx += 1
 
+        return sent_packets, received_packets
+
+    def _compare_groups(self, groups_ids: list[str], output_queue: multiprocessing.Queue) -> None:
+        """Compare multiple groups"""
+        sent_not_received, received_not_sent = [], []
+        for i, group_id in enumerate(groups_ids):
+            print(f"starting group {i} out of {len(groups_ids)}")
+            s, r = self._compare_group(group_id)
+            sent_not_received.extend(s)
+            received_not_sent.extend(r)
+
+        output_queue.put((sent_not_received, received_not_sent))
+
     def _find_lost_packets(self) -> tuple[list[Packet], list[Packet]]:
         """Find packets that were not delivered"""
-        # TODO: can be parallel
         sent_not_received: list[Packet] = []
         received_not_sent: list[Packet] = []
-        for sent_group_id in self._sent_groups:
-            logger.info(f"Processing group {sent_group_id}")
-            sent_filename = get_filename_from_hash(sent_group_id, "sent")
 
-            sent_packets: list[Packet] = rdpcap(sent_filename).res
-            received_packets: list[Packet] = []
+        n_proc = 4
+        subgroups = [[] for _ in range(n_proc)]
+        for i, group_id in enumerate(self._sent_groups):
+            subgroups[i % n_proc].append(group_id)
 
-            if sent_group_id in self._received_groups:
-                received_filename = get_filename_from_hash(sent_group_id, "received")
-                received_packets: list[Packet] = rdpcap(received_filename).res
-                self._compare_groups(sent_packets, received_packets, None)
+        output_queue = multiprocessing.Queue()
+        processes = []
 
-            sent_not_received.extend(sent_packets)
-            received_not_sent.extend(received_packets)
+        for subgroup in subgroups:
+            process = multiprocessing.Process(target=self._compare_groups, args=(subgroup, output_queue), daemon=True)
+            processes.append(process)
+            process.start()
 
-        return sent_not_received, received_not_sent
+        while not output_queue.empty():
+            send_lost, received_lost = output_queue.get()
+            sent_not_received.extend(send_lost)
+            received_not_sent.extend(received_lost)
+
+        for process in processes:
+            process.join()
+
+
+        return sent_not_received, sent_not_received
 
     def _print_statistics(self, sent_not_received: list[Packet], received_not_sent: list[Packet]) -> None:
         """Get lost packets and print statistics"""
