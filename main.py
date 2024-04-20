@@ -1,18 +1,12 @@
 import logging
 from pathlib import Path
 
-from scapy.all import rdpcap
-from scapy.plist import PacketList
-
 from config import (
-    SENT_FILE,
     RESULTS_FOLDER,
-    RECEIVED_FILE,
     SENT_GROUPS_SOLDER,
     RECEIVED_GROUPS_SOLDER,
 )
-from hash.protocols import transport_hash
-from writer import write_packet
+from packet_processor import PacketProcessor
 
 logger = logging.getLogger(__name__)
 
@@ -21,13 +15,9 @@ Path(RESULTS_FOLDER).mkdir(parents=True, exist_ok=True)
 Path(SENT_GROUPS_SOLDER).mkdir(parents=True, exist_ok=True)
 Path(RECEIVED_GROUPS_SOLDER).mkdir(parents=True, exist_ok=True)
 
-"""Group sent and received packets"""
-sent_packets: PacketList = rdpcap(SENT_FILE)
-for packet in sent_packets:
-    hash_value: int = transport_hash(packet)
-    write_packet(packet=packet, packet_type="in", hash_value=hash_value)
+packet_processor: PacketProcessor = PacketProcessor()
 
-received_packets: PacketList = rdpcap(RECEIVED_FILE)
-for packet in received_packets:
-    hash_value: int = transport_hash(packet)
-    write_packet(packet=packet, packet_type="out", hash_value=hash_value)
+packet_processor.load_sent_packets()
+packet_processor.load_received_packets()
+
+packet_processor.find_lost_packets()
