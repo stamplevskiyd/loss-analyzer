@@ -1,3 +1,4 @@
+import os.path
 import random
 
 from scapy.all import rdpcap, wrpcap
@@ -40,7 +41,14 @@ def generate_random_packet():
 
     return packet
 
+
 received_packets_count = 0
+
+if os.path.exists(sent_filename):
+    os.remove(sent_filename)
+
+if os.path.exists(received_filename):
+    os.remove(received_filename)
 
 for _ in range(sent_packet_count):
     random_packet = generate_random_packet()

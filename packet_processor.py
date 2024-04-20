@@ -1,4 +1,5 @@
 import logging
+import os
 from pathlib import Path
 from datetime import datetime
 
@@ -6,6 +7,7 @@ from scapy.layers.inet import TCP, UDP, ICMP, IP
 from scapy.layers.l2 import Ether
 from scapy.packet import Packet
 from scapy.utils import rdpcap, wrpcap
+from scapy.all import raw
 
 import config
 from utils import get_filename_from_hash
@@ -48,9 +50,17 @@ class PacketProcessor:
         self._received_count: int = 0
 
     def find_loss(self, print_statistics: bool = True) -> None:
+        self._start_datetime = datetime.now()
+
+        self._load_sent_packets()
+        self._load_received_packets()
         sent_not_received, received_not_sent = self._find_lost_packets()
+
+        self._end_datetime = datetime.now()
         if print_statistics:
-            self.print_statistics(sent_not_received, received_not_sent)
+            self._print_statistics(sent_not_received, received_not_sent)
+
+        # self._remove_folders()
 
     def _init_folders(self) -> None:
         """Create required folders if it does not exist"""
@@ -58,31 +68,36 @@ class PacketProcessor:
         Path(self._sent_groups_folder).mkdir(parents=True, exist_ok=True)
         Path(self._received_groups_folder).mkdir(parents=True, exist_ok=True)
 
+    def _remove_folders(self) -> None:
+        """Remove outdated folders"""
+        os.remove(self._received_groups_folder)
+        os.remove(self._sent_groups_folder)
+
     def _load_packets(self, filename: str, file_type: str) -> tuple[set[str], int]:
         """Load packets of some group"""
         packets: list[Packet] = rdpcap(filename).res
         groups: set[str] = set()
 
         for packet in packets:
-            hash_value: str = self.get_hash(packet)
+            hash_value: str = self._get_hash(packet)
             groups.add(hash_value)
             filename: str = get_filename_from_hash(hash_value=hash_value, packet_type=file_type)
-            wrpcap(filename=filename, pkt=packet)
+            wrpcap(filename=filename, pkt=packet, append=True)
 
         return groups, len(packets)
 
-    def load_sent_packets(self) -> None:
+    def _load_sent_packets(self) -> None:
         """Load and split sent packets"""
         self._sent_groups, sent_inc = self._load_packets(config.SENT_FILE, "sent")
         self._sent_count += sent_inc
 
-    def load_received_packets(self) -> None:
+    def _load_received_packets(self) -> None:
         """Load and split received packets"""
         self._received_groups, received_inc = self._load_packets(config.RECEIVED_FILE, "received")
         self._received_count += received_inc
 
     @classmethod
-    def get_hash(cls, packet: Packet) -> str:
+    def _get_hash(cls, packet: Packet) -> str:
         field_values: list[str] = []
         # Process L2
         if packet.haslayer(Ether):
@@ -103,7 +118,7 @@ class PacketProcessor:
         return "-".join(map(str, field_values))
 
     @staticmethod
-    def compare_groups(sent_packets: list[Packet], received_packets: list[Packet], sort_func=None) -> None:
+    def _compare_groups(sent_packets: list[Packet], received_packets: list[Packet], sort_func=None) -> None:
         """
         Compare packet groups and find, which packets are missing
         Saves sent but not received packets in sent_packets
@@ -114,17 +129,18 @@ class PacketProcessor:
             received_packets = sort_func(received_packets)
 
         sent_idx: int = 0
-        while sent_packets and received_packets:
+        while sent_idx < len(sent_packets):
             for received_idx, received_p in enumerate(received_packets):
-                if sent_packets[sent_idx] == received_p:
+                if raw(sent_packets[sent_idx]) == raw(received_p):
                     sent_packets.pop(sent_idx)
                     received_packets.pop(received_idx)
                     break
+            else:
+                sent_idx += 1
 
     def _find_lost_packets(self) -> tuple[list[Packet], list[Packet]]:
         """Find packets that were not delivered"""
         # TODO: can be parallel
-        self._start_datetime = datetime.now()
         sent_not_received: list[Packet] = []
         received_not_sent: list[Packet] = []
         for sent_group_id in self._sent_groups:
@@ -137,16 +153,14 @@ class PacketProcessor:
             if sent_group_id in self._received_groups:
                 received_filename = get_filename_from_hash(sent_group_id, "received")
                 received_packets: list[Packet] = rdpcap(received_filename).res
-                self.compare_groups(sent_packets, received_packets, None)
+                self._compare_groups(sent_packets, received_packets, None)
 
             sent_not_received.extend(sent_packets)
             received_not_sent.extend(received_packets)
 
-        self._end_datetime = datetime.now()
-
         return sent_not_received, received_not_sent
 
-    def print_statistics(self, sent_not_received: list[Packet], received_not_sent: list[Packet]) -> None:
+    def _print_statistics(self, sent_not_received: list[Packet], received_not_sent: list[Packet]) -> None:
         """Get lost packets and print statistics"""
         line: str = "=" * 15 + "\n"
         line += f"Sent packets count: {self._sent_count}\n"

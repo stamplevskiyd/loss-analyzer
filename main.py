@@ -6,8 +6,4 @@ from config import (
 from packet_processor import PacketProcessor
 
 packet_processor: PacketProcessor = PacketProcessor(results_folder=RESULTS_FOLDER, sent_groups_folder=SENT_GROUPS_SOLDER, received_groups_folder=RECEIVED_GROUPS_SOLDER)
-
-packet_processor.load_sent_packets()
-packet_processor.load_received_packets()
-
 packet_processor.find_loss()
