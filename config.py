@@ -12,3 +12,7 @@ SENT_GROUPS_SOLDER: str = "sent_groups"
 
 # folder where to save packet groups for received packets
 RECEIVED_GROUPS_SOLDER: str = "received_groups"
+
+# Multiprocessing settings
+USE_MULTIPROCESSING: bool = True
+PROC_COUNT = 4
