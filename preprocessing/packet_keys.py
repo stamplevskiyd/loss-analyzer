@@ -4,7 +4,7 @@ from scapy.layers.inet import TCP, UDP, ICMP, IP
 from scapy.layers.l2 import Ether
 from scapy.packet import Packet
 
-from groups.constant_fields import (
+from config.constant_fields import (
     ether_const_fields,
     ip_const_fields,
     tcp_const_fields,

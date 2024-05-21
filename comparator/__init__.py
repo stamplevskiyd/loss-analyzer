@@ -1,6 +1,7 @@
 import logging
 from multiprocessing import Pool
 from functools import partial
+
 import config
 from custom_types import PacketType
 from utils import get_filename_from_hash
@@ -43,14 +44,15 @@ def get_loss_by_group_id(group_id: bytes, received_groups_ids: set[bytes]) -> tu
 
 
 def find_packet_loss(
-    sent_groups_ids: set[bytes], received_groups_ids: set[bytes]
+    sent_groups_ids: set[bytes],
+    received_groups_ids: set[bytes],
 ) -> tuple[int, int]:
     """Find lost packets after data was split by groups"""
     sent_not_received: int = 0
     received_not_sent: int = 0
 
-    if config.USE_MULTIPROCESSING:
-        with Pool(processes=config.PROC_COUNT) as pool:
+    if config.use_multiprocessing:
+        with Pool(processes=config.proc_count) as pool:
             res = pool.map(
                 partial(get_loss_by_group_id, received_groups_ids=received_groups_ids),
                 sent_groups_ids,
@@ -63,7 +65,6 @@ def find_packet_loss(
     else:
         for group_id in sent_groups_ids:
             sent_p, received_p = get_loss_by_group_id(group_id, received_groups_ids)
-            # print(sent_p, received_p)
             sent_not_received += sent_p
             received_not_sent += received_p
 

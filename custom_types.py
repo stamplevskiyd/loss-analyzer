@@ -13,3 +13,4 @@ class StringAlgorithmType(StrEnum):
 
     standard = "standard"
     tokenized = "tokenized"
+    combined = "combined"
