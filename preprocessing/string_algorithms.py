@@ -26,16 +26,16 @@ def tokens_and_body(packet: Packet) -> tuple[bytes, bytes]:
         body = raw(packet[ICMP].payload)
 
     processed_tokens: list[bytes] = [bytes(str(value), "utf-8") for value in tokens]
-    return b"-".join(processed_tokens).replace(b"\n", b"\\n"), body.replace(b"\n", b"\\n")
+    return b"-".join(processed_tokens).replace(b"\n", b"\\n"), body
 
 
 def packet_to_tokens(packet: Packet) -> bytes:
     """Split packet into tokens and take hash from them"""
     tokens, body = tokens_and_body(packet)
-    return tokens + hashlib.md5(body).digest()
+    return tokens + hashlib.md5(body).digest().replace(b"\n", b"\\n")
 
 
 def packet_combined(packet: Packet) -> bytes:
     """Split header into tokens and use the same body"""
     tokens, body = tokens_and_body(packet)
-    return tokens + body
+    return tokens + body.replace(b"\n", b"\\n")

@@ -17,4 +17,4 @@ use_multiprocessing: bool = True
 proc_count = 6
 
 # Mode: standard or tokenized
-string_algorithm: StringAlgorithmType = StringAlgorithmType.combined
+string_algorithm: StringAlgorithmType = StringAlgorithmType.tokenized
