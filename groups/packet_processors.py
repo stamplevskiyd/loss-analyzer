@@ -7,7 +7,7 @@ from groups.packet_keys import get_packet_key_values
 
 def packet_to_bytes(packet: Packet) -> bytes:
     """Copy packet symbols one by one"""
-    return raw(packet)
+    return raw(packet).replace(b"\n", b"\t")
 
 
 def packet_to_hash(packet: Packet) -> bytes:

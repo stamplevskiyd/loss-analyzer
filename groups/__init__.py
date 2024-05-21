@@ -14,7 +14,7 @@ def write_packet_to_file(packet: Packet, hash_value: bytes, packet_type: PacketT
     processed_packet: bytes = processing_func(packet)
     filename: str = get_filename_from_hash(hash_value=hash_value, packet_type=packet_type)
     with open(filename, "ba") as file:
-        file.write(processed_packet + b"\n")
+        file.write(processed_packet)
 
 
 def split_packets_by_groups(packets: list[Packet], packet_type: PacketType, processing_func: Callable[[Packet], bytes] = packet_to_bytes) -> set[bytes]:
@@ -25,7 +25,5 @@ def split_packets_by_groups(packets: list[Packet], packet_type: PacketType, proc
         hash_value: bytes = get_packet_key(packet)
         groups_ids.add(hash_value)
         write_packet_to_file(packet, hash_value, packet_type, processing_func)
-        filename: str = get_filename_from_hash(hash_value=hash_value, packet_type=packet_type)
-        wrpcap(filename=filename, pkt=packet, append=True)
 
     return groups_ids

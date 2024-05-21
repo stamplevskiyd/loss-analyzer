@@ -1,6 +1,3 @@
-# Folder to save results at
-RESULTS_FOLDER: str = "results"
-
 # File with sent packets
 SENT_FILE: str = "sent.pcap"
 

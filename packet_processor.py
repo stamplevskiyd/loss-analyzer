@@ -19,7 +19,6 @@ class PacketProcessor:
 
     def __init__(
         self,
-        results_folder: str,
         sent_groups_folder: str,
         received_groups_folder: str,
     ):
@@ -28,7 +27,6 @@ class PacketProcessor:
 
         self._sent_groups_folder: str = sent_groups_folder
         self._received_groups_folder: str = received_groups_folder
-        self._results_folder: str = results_folder
 
         self._init_folders()
 
@@ -89,7 +87,6 @@ class PacketProcessor:
 
     def _init_folders(self) -> None:
         """Create required folders if it does not exist"""
-        Path(self._results_folder).mkdir(parents=True, exist_ok=True)
         Path(self._sent_groups_folder).mkdir(parents=True, exist_ok=True)
         Path(self._received_groups_folder).mkdir(parents=True, exist_ok=True)
 

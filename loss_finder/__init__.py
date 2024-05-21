@@ -1,9 +1,6 @@
 import logging
 from multiprocessing import Pool
 
-from scapy.packet import Packet
-from scapy.utils import rdpcap
-
 import config
 from custom_types import PacketType
 from utils import get_filename_from_hash
@@ -62,8 +59,6 @@ def find_packet_loss(sent_groups_ids:  set[bytes], received_groups_ids: set[byte
             sent_not_received += sent_p
             received_not_sent += received_p
     else:
-        print(len(sent_groups_ids))
-        print(len(received_groups_ids))
         for group_id in sent_groups_ids:
             sent_p, received_p = get_loss_by_group_id(group_id, received_groups_ids)
             # print(sent_p, received_p)
