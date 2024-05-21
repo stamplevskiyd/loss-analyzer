@@ -14,5 +14,7 @@ SENT_GROUPS_SOLDER: str = "sent_groups"
 RECEIVED_GROUPS_SOLDER: str = "received_groups"
 
 # Multiprocessing settings
-USE_MULTIPROCESSING: bool = True
-PROC_COUNT = 4
+USE_MULTIPROCESSING: bool = False
+PROC_COUNT = 6
+
+COMPARE_FUNCTION: str = "standard"

@@ -7,8 +7,8 @@ from scapy.layers.inet import IP, TCP, UDP
 from scapy.layers.l2 import Ether
 from scapy.packet import Raw
 
-sent_packet_count = 1000
-loss_range = 0.6
+sent_packet_count = 10000
+loss_range = 0.4
 
 sent_packets = rdpcap("200722_tcp_anon.pcapng")
 
