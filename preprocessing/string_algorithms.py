@@ -32,12 +32,10 @@ def tokens_and_body(packet: Packet) -> tuple[bytes, bytes]:
 def packet_to_tokens(packet: Packet) -> bytes:
     """Split packet into tokens and take hash from them"""
     tokens, body = tokens_and_body(packet)
-    return tokens + hashlib.md5(body).digest()  # TODO: new algorithm
+    return tokens + hashlib.md5(body).digest()
 
 
 def packet_combined(packet: Packet) -> bytes:
     """Split header into tokens and use the same body"""
     tokens, body = tokens_and_body(packet)
-    if tokens == b"2048-4-5-1476-1-0-17-1456-28634":
-        print(body)
     return tokens + body
