@@ -38,9 +38,7 @@ def generate_random_packet():
         udp = UDP(sport=random_port(), dport=random_port())
         packet = ether / ip / udp
 
-    packet = packet / Raw(
-        load="".join([chr(random.randint(0, 255)) for _ in range(1000)])
-    )
+    packet = packet / Raw(load="".join([chr(random.randint(0, 255)) for _ in range(1000)]))
 
     return packet
 

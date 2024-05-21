@@ -26,4 +26,5 @@ def packet_to_hash(packet: Packet) -> bytes:
     if body:
         tokens.append(hash(body))
 
-    return b"".join(map(bytes, tokens))
+    processed_tokens: list[bytes] = [bytes(str(value), "utf-8") for value in tokens]
+    return b"".join(processed_tokens).replace(b"\n", b"\\n")

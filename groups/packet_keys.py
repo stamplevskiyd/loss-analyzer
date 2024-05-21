@@ -9,7 +9,7 @@ from groups.constant_fields import (
     ip_const_fields,
     tcp_const_fields,
     udp_const_fields,
-    icmp_const_fields
+    icmp_const_fields,
 )
 
 logger = logging.getLogger(__name__)
@@ -35,8 +35,8 @@ def get_packet_key_values(packet: Packet) -> list[int]:
         key_values.extend([packet[UDP].fields[field] for field in udp_const_fields])
     elif ICMP in layers:
         key_values.extend([packet[ICMP].fields[field] for field in icmp_const_fields])
-        
-    return key_values    
+
+    return key_values
 
 
 def get_packet_key(packet: Packet) -> bytes:
@@ -44,5 +44,3 @@ def get_packet_key(packet: Packet) -> bytes:
     key_values: list[int] = get_packet_key_values(packet)
     key_values_processed: list[bytes] = [bytes(str(value), "utf-8") for value in key_values]
     return b"-".join(key_values_processed)
-
-

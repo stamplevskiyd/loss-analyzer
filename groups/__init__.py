@@ -9,7 +9,12 @@ from groups.packet_processors import packet_to_bytes
 from utils import get_filename_from_hash
 
 
-def write_packet_to_file(packet: Packet, hash_value: bytes, packet_type: PacketType, processing_func: Callable[[Packet], bytes] = packet_to_bytes):
+def write_packet_to_file(
+    packet: Packet,
+    hash_value: bytes,
+    packet_type: PacketType,
+    processing_func: Callable[[Packet], bytes] = packet_to_bytes,
+):
     """Write packet to certain file"""
     processed_packet: bytes = processing_func(packet)
     filename: str = get_filename_from_hash(hash_value=hash_value, packet_type=packet_type)
@@ -17,7 +22,11 @@ def write_packet_to_file(packet: Packet, hash_value: bytes, packet_type: PacketT
         file.write(processed_packet + b"\n")
 
 
-def split_packets_by_groups(packets: list[Packet], packet_type: PacketType, processing_func: Callable[[Packet], bytes] = packet_to_bytes) -> set[bytes]:
+def split_packets_by_groups(
+    packets: list[Packet],
+    packet_type: PacketType,
+    processing_func: Callable[[Packet], bytes] = packet_to_bytes,
+) -> set[bytes]:
     """Split provided packets list by groups"""
     groups_ids: set[bytes] = set()
 

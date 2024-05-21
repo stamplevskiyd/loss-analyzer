@@ -1,4 +1,6 @@
 # File with sent packets
+from custom_types import StringAlgorithmType
+
 SENT_FILE: str = "sent.pcap"
 
 # File with received packets
@@ -14,4 +16,5 @@ RECEIVED_GROUPS_SOLDER: str = "received_groups"
 USE_MULTIPROCESSING: bool = False
 PROC_COUNT = 6
 
-COMPARE_FUNCTION: str = "standard"
+# Mode: standard or tokenized
+STRING_ALGORITHM: StringAlgorithmType = StringAlgorithmType.tokenized
