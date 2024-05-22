@@ -86,5 +86,6 @@ class LossAnalyzer:
         line += (
             f"Time spent on packet compare: {(self._end_datetime - self._start_compare_datetime)}\n"
         )
+        line += f"Sent groups count: {len(self._sent_groups_keys)}, received groups count: {len(self._received_groups_keys)}\n"
         line += "=" * 15 + "\n"
         print(line)

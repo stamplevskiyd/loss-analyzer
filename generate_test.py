@@ -1,16 +1,15 @@
 import os.path
 import random
 
-from scapy.all import rdpcap, wrpcap
+from scapy.all import wrpcap
 from scapy.compat import raw
 from scapy.layers.inet import IP, TCP, UDP
 from scapy.layers.l2 import Ether
 from scapy.packet import Raw
 
-sent_packet_count = 10000
-loss_range = 0.4
-
-sent_packets = rdpcap("200722_tcp_anon.pcapng")
+sent_packet_count = 100000
+loss_range = 0.1
+body_len = 1000
 
 sent_filename = "sent.pcap"
 received_filename = "received.pcap"
@@ -38,7 +37,7 @@ def generate_random_packet():
         udp = UDP(sport=random_port(), dport=random_port())
         packet = ether / ip / udp
 
-    packet = packet / Raw(load="".join([chr(random.randint(0, 255)) for _ in range(1000)]))
+    packet = packet / Raw(load="".join([chr(random.randint(0, 255)) for _ in range(body_len)]))
 
     return packet
 
