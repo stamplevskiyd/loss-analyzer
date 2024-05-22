@@ -13,14 +13,14 @@ sent_groups_folder: str = "sent_groups"
 received_groups_folder: str = "received_groups"
 
 # Multiprocessing settings
-use_multiprocessing: bool = True
+use_multiprocessing: bool = False
 proc_count = 8
 
 # Mode: standard or tokenized
 string_algorithm: StringAlgorithmType = StringAlgorithmType.standard
 
 # Key fields
-selected_key_fields: dict[str, list[str]] = {
-    "Ethernet": ["type"],
-    "IP": ["version", "ihl", "len", "id", "frag", "proto"]
-}
+# selected_key_fields: dict[str, list[str]] = {
+#     "Ethernet": ["type"],
+#     "IP": ["version", "ihl", "len", "id", "frag", "proto"]
+# }

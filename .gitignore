@@ -158,3 +158,6 @@ cython_debug/
 /received_groups/
 /results/
 /sent_groups/
+
+.idea
+
