@@ -24,8 +24,8 @@ class LossAnalyzer:
         self._sent_count: int = 0
         self._received_count: int = 0
 
-        self._sent_groups_ids: set[bytes] = set()
-        self._received_groups_ids: set[bytes] = set()
+        self._sent_groups_keys: set[bytes] = set()
+        self._received_groups_keys: set[bytes] = set()
 
         create_tmp_folders_if_needed()
 
@@ -36,14 +36,14 @@ class LossAnalyzer:
         """Load packets and split by groups"""
         sent_packets: list[Packet] = rdpcap(config.sent_file).res
         self._sent_count = len(sent_packets)
-        self._sent_groups_ids = split_packets_by_groups(
+        self._sent_groups_keys = split_packets_by_groups(
             sent_packets,
             PacketType.sent,
         )
 
         received_packets: list[Packet] = rdpcap(config.received_file).res
         self._received_count = len(received_packets)
-        self._received_groups_ids = split_packets_by_groups(
+        self._received_groups_keys = split_packets_by_groups(
             received_packets,
             PacketType.received,
         )
@@ -51,8 +51,8 @@ class LossAnalyzer:
         """Compare groups"""
         self._start_compare_datetime = datetime.now()
         sent_not_received, received_not_sent = find_packet_loss(
-            sent_groups_ids=self._sent_groups_ids,
-            received_groups_ids=self._received_groups_ids,
+            sent_groups_keys=self._sent_groups_keys,
+            received_groups_keys=self._received_groups_keys,
         )
         self._end_datetime = datetime.now()
 

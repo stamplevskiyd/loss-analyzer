@@ -4,7 +4,7 @@ from functools import partial
 
 import config
 from custom_types import PacketType
-from utils import get_filename_from_hash
+from utils import get_filename_from_key
 
 logger = logging.getLogger(__name__)
 
@@ -29,23 +29,23 @@ def compare_group(sent_packets: list[bytes], received_packets: list[bytes]) -> t
     return len(sent_packets), len(received_packets)
 
 
-def get_loss_by_group_id(group_id: bytes, received_groups_ids: set[bytes]) -> tuple[int, int]:
-    """Find loss based on group_id"""
-    with open(get_filename_from_hash(group_id, PacketType.sent), "rb") as sent_file:
+def get_loss_by_group_key(group_key: bytes, received_groups_keys: set[bytes]) -> tuple[int, int]:
+    """Find loss based on group_key"""
+    with open(get_filename_from_key(group_key, PacketType.sent), "rb") as sent_file:
         sent_packets: list[bytes] = sent_file.readlines()
 
-    if group_id not in received_groups_ids:
+    if group_key not in received_groups_keys:
         return len(sent_packets), 0
 
-    with open(get_filename_from_hash(group_id, PacketType.received), "rb") as received_file:
+    with open(get_filename_from_key(group_key, PacketType.received), "rb") as received_file:
         received_packets: list[bytes] = received_file.readlines()
 
     return compare_group(sent_packets, received_packets)
 
 
 def find_packet_loss(
-    sent_groups_ids: set[bytes],
-    received_groups_ids: set[bytes],
+    sent_groups_keys: set[bytes],
+    received_groups_keys: set[bytes],
 ) -> tuple[int, int]:
     """Find lost packets after data was split by groups"""
     sent_not_received: int = 0
@@ -54,8 +54,8 @@ def find_packet_loss(
     if config.use_multiprocessing:
         with Pool(processes=config.proc_count) as pool:
             res = pool.map(
-                partial(get_loss_by_group_id, received_groups_ids=received_groups_ids),
-                sent_groups_ids,
+                partial(get_loss_by_group_key, received_groups_keys=received_groups_keys),
+                sent_groups_keys,
             )
 
         for proc_result in res:
@@ -63,8 +63,8 @@ def find_packet_loss(
             sent_not_received += sent_p
             received_not_sent += received_p
     else:
-        for group_id in sent_groups_ids:
-            sent_p, received_p = get_loss_by_group_id(group_id, received_groups_ids)
+        for group_key in sent_groups_keys:
+            sent_p, received_p = get_loss_by_group_key(group_key, received_groups_keys)
             sent_not_received += sent_p
             received_not_sent += received_p
 

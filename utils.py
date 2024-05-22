@@ -6,10 +6,10 @@ from config import sent_groups_folder, received_groups_folder
 from custom_types import PacketType
 
 
-def get_filename_from_hash(hash_value: bytes, packet_type: PacketType) -> str:
-    """Get hash and packet type and create filename"""
+def get_filename_from_key(key_value: bytes, packet_type: PacketType) -> str:
+    """Get key and packet type and create filename"""
     folder: str = sent_groups_folder if packet_type == "sent" else received_groups_folder
-    filename: str = f"{folder}/{packet_type}_{str(hash_value, 'utf-8')}.tmp"
+    filename: str = f"{folder}/{packet_type}_{str(key_value, 'utf-8')}.tmp"
 
     return filename
 

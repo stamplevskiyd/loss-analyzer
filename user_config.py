@@ -13,8 +13,8 @@ sent_groups_folder: str = "sent_groups"
 received_groups_folder: str = "received_groups"
 
 # Multiprocessing settings
-use_multiprocessing: bool = True
+use_multiprocessing: bool = False
 proc_count = 6
 
 # Mode: standard or tokenized
-string_algorithm: StringAlgorithmType = StringAlgorithmType.tokenized
+string_algorithm: StringAlgorithmType = StringAlgorithmType.standard
