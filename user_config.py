@@ -6,8 +6,6 @@ sent_file: str = "sent.pcap"
 # File with received packets
 received_file: str = "received.pcap"
 
-sent_file = received_file = "traffic_00003_20230906061206.pcap"
-
 # folder where to save packet groups for sent packets
 sent_groups_folder: str = "sent_groups"
 
